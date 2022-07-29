@@ -8,6 +8,7 @@ import (
 	"github.com/tuananh3561/go_crm/app/middleware"
 	"github.com/tuananh3561/go_crm/app/repository"
 	"github.com/tuananh3561/go_crm/app/service"
+	"github.com/tuananh3561/go_crm/app/usecase"
 	"net/http"
 )
 
@@ -27,7 +28,10 @@ func Router(r *gin.Engine, db config.Database, channelRabbitMQ *amqp.Channel) {
 		//webConnectService      = connect_service.NewWebConnectService()
 		//deleteCacheService     = connect_service.NewDeleteCacheService()
 		//
-		roleController = controller.NewRoleController(roleRepo, historyActivityService)
+
+		role = usecase.NewRole(roleRepo, historyActivityService)
+
+		roleController = controller.NewRoleController(role)
 		//translateController   = controller.NewTranslateController(translateRepo)
 	)
 

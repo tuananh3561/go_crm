@@ -5,8 +5,6 @@ import (
 	"github.com/tuananh3561/go_crm/app/dto"
 	"github.com/tuananh3561/go_crm/app/entity"
 	"github.com/tuananh3561/go_crm/app/helper"
-	"github.com/tuananh3561/go_crm/app/repository"
-	"github.com/tuananh3561/go_crm/app/service"
 	"github.com/tuananh3561/go_crm/app/usecase"
 	"net/http"
 )
@@ -19,17 +17,14 @@ type RoleController interface {
 }
 
 type roleController struct {
-	roleRepo               repository.RoleRepository
-	historyActivityService service.HistoryActivityService
+	role usecase.Role
 }
 
 func NewRoleController(
-	roleRepo repository.RoleRepository,
-	historyActivityService service.HistoryActivityService,
+	role usecase.Role,
 ) RoleController {
 	return &roleController{
-		roleRepo:               roleRepo,
-		historyActivityService: historyActivityService,
+		role: role,
 	}
 }
 
@@ -44,7 +39,7 @@ func (r roleController) List(context *gin.Context) {
 		return
 	}
 
-	listAudioBook, err := usecase.RolesByParams(r.roleRepo, roleSearchDTO)
+	listAudioBook, err := r.role.RolesByParams(roleSearchDTO)
 	if err != nil {
 		res := helper.BuildErrorResponse(message+"failed.", err.Error(), nil)
 		context.AbortWithStatusJSON(http.StatusInternalServerError, res)
@@ -80,7 +75,7 @@ func (r roleController) Create(context *gin.Context) {
 		return
 	}
 
-	gradeCreate, err := usecase.CreateRole(r.roleRepo, r.historyActivityService, userParse, roleCreateDTO)
+	gradeCreate, err := r.role.CreateRole(userParse, roleCreateDTO)
 	if err != nil {
 		res := helper.BuildErrorResponse(message+"failed.", err.Error(), nil)
 		context.AbortWithStatusJSON(http.StatusInternalServerError, res)
@@ -115,7 +110,7 @@ func (r roleController) Update(context *gin.Context) {
 		return
 	}
 
-	err := usecase.UpdateRole(r.roleRepo, r.historyActivityService, userParse, roleUpdateDTO)
+	err := r.role.UpdateRole(userParse, roleUpdateDTO)
 	if err != nil {
 		res := helper.BuildErrorResponse(message+"failed.", err.Error(), nil)
 		context.AbortWithStatusJSON(http.StatusInternalServerError, res)

@@ -8,10 +8,28 @@ import (
 	"github.com/tuananh3561/go_crm/app/service"
 )
 
-func RolesByParams(roleRepo repository.RoleRepository, params dto.RoleSearchDTO) (interface{}, error) {
-	data, errData := roleRepo.RolesByParams(params)
+type Role interface {
+	RolesByParams(params dto.RoleSearchDTO) (interface{}, error)
+	CreateRole(user entity.User, roleCreateDTO dto.RoleCreateDTO) (*entity.Role, error)
+	UpdateRole(user entity.User, roleUpdateDTO dto.RoleUpdateDTO) error
+}
+
+type user struct {
+	roleRepo repository.RoleRepository
+	history  service.HistoryActivityService
+}
+
+func NewRole(roleRepo repository.RoleRepository, history service.HistoryActivityService) *user {
+	return &user{
+		roleRepo: roleRepo,
+		history:  history,
+	}
+}
+
+func (u user) RolesByParams(params dto.RoleSearchDTO) (interface{}, error) {
+	data, errData := u.roleRepo.RolesByParams(params)
 	if params.Limit != 0 {
-		total, errTotal := roleRepo.CountRoleByParams(params)
+		total, errTotal := u.roleRepo.CountRoleByParams(params)
 		response := dto.ResponseList{
 			Data:  data,
 			Total: total,
@@ -21,14 +39,14 @@ func RolesByParams(roleRepo repository.RoleRepository, params dto.RoleSearchDTO)
 	return data, errData
 }
 
-func CreateRole(roleRepo repository.RoleRepository, history service.HistoryActivityService, user entity.User, roleCreateDTO dto.RoleCreateDTO) (*entity.Role, error) {
+func (u user) CreateRole(user entity.User, roleCreateDTO dto.RoleCreateDTO) (*entity.Role, error) {
 	roleCreate := entity.Role{
 		Id:       roleCreateDTO.Id,
 		Name:     roleCreateDTO.Name,
 		ParentId: roleCreateDTO.ParentId,
 		Status:   entity.RoleStatusActive,
 	}
-	role, errCreate := roleRepo.CreateRole(roleCreate)
+	role, errCreate := u.roleRepo.CreateRole(roleCreate)
 	if errCreate == nil {
 		//condition := bson.M{
 		//	"id": grade.IdGrade,
@@ -38,11 +56,11 @@ func CreateRole(roleRepo repository.RoleRepository, history service.HistoryActiv
 	return role, errCreate
 }
 
-func UpdateRole(roleRepo repository.RoleRepository, history service.HistoryActivityService, user entity.User, roleUpdateDTO dto.RoleUpdateDTO) error {
+func (u user) UpdateRole(user entity.User, roleUpdateDTO dto.RoleUpdateDTO) error {
 	if roleUpdateDTO.Id == "" {
 		return errors.New("id role not found")
 	}
-	role, err := roleRepo.FindRoleById(roleUpdateDTO.Id)
+	role, err := u.roleRepo.FindRoleById(roleUpdateDTO.Id)
 	if err != nil || role.Id == "" {
 		return errors.New("id role " + roleUpdateDTO.Id + " does not exist")
 	}
@@ -51,7 +69,7 @@ func UpdateRole(roleRepo repository.RoleRepository, history service.HistoryActiv
 		Name:     roleUpdateDTO.Name,
 		ParentId: roleUpdateDTO.ParentId,
 	}
-	errUpdate := roleRepo.UpdateRole(roleUpdate)
+	errUpdate := u.roleRepo.UpdateRole(roleUpdate)
 	if errUpdate == nil {
 		//condition := bson.M{
 		//	"id": eGrade.IdGrade,
