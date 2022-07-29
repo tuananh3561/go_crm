@@ -8,7 +8,6 @@ import (
 // LoadEnv Load will read your env file(s) and load them into ENV for this process.
 func LoadEnv() {
 	errEnv := godotenv.Load(".env")
-
 	if errEnv != nil {
 		panic("Failed to load env failed")
 	}
@@ -22,7 +21,7 @@ func GetEnv(key, defaultValue string) string {
 	return defaultValue
 }
 
-var Environment = EnvironmentData{}
+var Environment *EnvironmentData
 
 type EnvironmentData struct {
 	ApiCrm  string
@@ -51,7 +50,7 @@ func LoadEnvironment() {
 	default:
 		data = EnvironmentLocal()
 	}
-	Environment = data
+	Environment = &data
 }
 
 func EnvironmentLocal() EnvironmentData {

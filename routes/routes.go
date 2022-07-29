@@ -5,6 +5,7 @@ import (
 	"github.com/streadway/amqp"
 	"github.com/tuananh3561/go_crm/app/config"
 	"github.com/tuananh3561/go_crm/app/controller"
+	"github.com/tuananh3561/go_crm/app/job"
 	"github.com/tuananh3561/go_crm/app/middleware"
 	"github.com/tuananh3561/go_crm/app/repository"
 	"github.com/tuananh3561/go_crm/app/service"
@@ -22,17 +23,9 @@ func Router(r *gin.Engine, db config.Database, channelRabbitMQ *amqp.Channel) {
 		//mediaService           = service.NewMediaService()
 		historyActivityService = service.NewHistoryActivityService()
 
-		//textService            = service.NewTextService()
-		//authConnectService     = connect_service.NewCrmConnectService()
-		//productConnectService  = connect_service.NewProductConnectService()
-		//webConnectService      = connect_service.NewWebConnectService()
-		//deleteCacheService     = connect_service.NewDeleteCacheService()
-		//
-
 		role = usecase.NewRole(roleRepo, historyActivityService)
 
 		roleController = controller.NewRoleController(role)
-		//translateController   = controller.NewTranslateController(translateRepo)
 	)
 
 	r.Use(middleware.CORSMiddleware())
@@ -40,6 +33,7 @@ func Router(r *gin.Engine, db config.Database, channelRabbitMQ *amqp.Channel) {
 	routesWeb := r.Group("")
 	{
 		routesWeb.GET("/", func(context *gin.Context) {
+			job.PublishInsertLogMongo()
 			context.JSON(http.StatusOK, gin.H{
 				"message": "Service crm",
 			})
@@ -58,10 +52,5 @@ func Router(r *gin.Engine, db config.Database, channelRabbitMQ *amqp.Channel) {
 		routesApi.GET("/role/create", roleController.Create)
 		routesApi.GET("/role/update", roleController.Update)
 		routesApi.GET("/role/update_status", roleController.UpdateStatus)
-
-		////Translate
-		//routesApi.GET("/get-list-translate-by-params", translateController.GetListTranslateByParams)
-		//routesApi.POST("/add-translate-language", translateController.AddTranslateLanguage)
-
 	}
 }

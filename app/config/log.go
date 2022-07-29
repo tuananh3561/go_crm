@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/tuananh3561/go_crm/app/helper"
 	"io"
 	"os"
 	"time"
@@ -12,10 +11,12 @@ import (
 const PathLog = "storage/logs"
 
 func SetupLogOutput() {
-	// create found log
-	errMkd := helper.Mkdir(PathLog)
-	if errMkd != nil {
-		panic(errMkd)
+	// create folder log
+	if _, err := os.Stat(PathLog); os.IsNotExist(err) {
+		errMkd := os.Mkdir(PathLog, 0755)
+		if errMkd != nil {
+			panic("create folder log failed")
+		}
 	}
 	// get file name log
 	fileName := fmt.Sprintf(PathLog+"/gin_%s.log", time.Now().Format(time.ANSIC))

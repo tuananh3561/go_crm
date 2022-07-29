@@ -17,13 +17,13 @@ func SetupConfig() Config {
 	LoadEnvironment()
 	SetupLogOutput()
 	sentry := SentryInit()
-	//var channelRabbitMQ = AMQPInit()
+	channelRabbitMQ := AMQPInit()
 	database := SetupDatabaseConnection()
 	config := Config{
-		App:    app,
-		Sentry: sentry,
-		//ChannelRabbitMQ: channelRabbitMQ,
-		Database: database,
+		App:             app,
+		Sentry:          sentry,
+		ChannelRabbitMQ: channelRabbitMQ,
+		Database:        database,
 	}
 	return config
 }

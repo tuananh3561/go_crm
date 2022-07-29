@@ -18,7 +18,7 @@ type QueuePublish struct {
 
 var queue *Queue
 
-func DeclareToQueue(channelRabbitMQ *amqp.Channel) {
+func DeclareToQueue(channelRabbitMQ *amqp.Channel, queueName string) {
 	q := Queue{
 		channelRabbitMQ: channelRabbitMQ,
 	}
@@ -27,7 +27,7 @@ func DeclareToQueue(channelRabbitMQ *amqp.Channel) {
 	// With the instance and declare Queues that we can
 	// publish and subscribe to.
 	_, err := channelRabbitMQ.QueueDeclare(
-		"edu_cms", // queue name
+		queueName, // queue name
 		true,      // durable
 		false,     // auto delete
 		false,     // exclusive
@@ -39,7 +39,7 @@ func DeclareToQueue(channelRabbitMQ *amqp.Channel) {
 	}
 }
 
-func SubscribingToQueue(channelRabbitMQ *amqp.Channel) {
+func SubscribingToQueue(channelRabbitMQ *amqp.Channel, queueName string) {
 	q := Queue{
 		channelRabbitMQ: channelRabbitMQ,
 	}
@@ -47,7 +47,7 @@ func SubscribingToQueue(channelRabbitMQ *amqp.Channel) {
 
 	// Subscribing to Queue for getting messages.
 	messages, err := channelRabbitMQ.Consume(
-		"edu_cms", // queue name
+		queueName, // queue name
 		"",        // consumer
 		true,      // auto-ack
 		false,     // exclusive
@@ -85,13 +85,14 @@ func Execute(q Queue, seedMethodName string) {
 }
 
 func Publish(message amqp.Publishing) {
-	if errQ := queue.channelRabbitMQ.Publish(
-		"",        // exchange
-		"edu_cms", // queue name
-		false,     // mandatory
-		false,     // immediate
-		message,   // message to publish
-	); errQ != nil {
+	errQ := queue.channelRabbitMQ.Publish(
+		"",       // exchange
+		"go_crm", // queue name
+		false,    // mandatory
+		false,    // immediate
+		message,  // message to publish
+	)
+	if errQ != nil {
 		log.Fatal("error publishing queue ", errQ)
 	}
 }

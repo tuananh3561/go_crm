@@ -15,7 +15,7 @@ func main() {
 	cf := config.SetupConfig()
 
 	defer config.CloseDatabaseConnection(cf.Database)
-	//defer config.CloseAMQP()
+	defer config.CloseAMQP()
 
 	handleArgs(cf)
 
@@ -46,7 +46,7 @@ func handleArgs(cf config.Config) {
 			seeds.Execute(cf.Database, args[1:]...)
 			os.Exit(0)
 		case "queue":
-			job.SubscribingToQueue(cf.ChannelRabbitMQ)
+			job.SubscribingToQueue(cf.ChannelRabbitMQ, config.ConfigAMQPDefault.QueueName)
 			os.Exit(0)
 		}
 	}

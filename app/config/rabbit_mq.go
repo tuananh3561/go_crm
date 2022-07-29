@@ -5,27 +5,31 @@ import (
 	"github.com/tuananh3561/go_crm/app/job"
 )
 
-type AMQPConfig struct {
-	amqpServerURL string
+type ConfigAMQP struct {
+	AMQPUrl   string
+	QueueName string
 }
 
+var ConfigAMQPDefault ConfigAMQP
 var ConnectRabbitMQ *amqp.Connection
 var ChannelRabbitMQ *amqp.Channel
 
-func getConfigAMQP() AMQPConfig {
-	var aMQPConfig = AMQPConfig{}
+func getConfigAMQP() ConfigAMQP {
+	configAMQP := ConfigAMQP{}
 	// Define RabbitMQ server URL.
-	aMQPConfig.amqpServerURL = GetEnv("AMQP_SERVER_URL", "")
+	configAMQP.AMQPUrl = GetEnv("AMQP_URL", "")
+	configAMQP.QueueName = GetEnv("QUEUE_NAME", "go_crm")
 
-	return aMQPConfig
+	return configAMQP
 }
 
 func AMQPInit() *amqp.Channel {
 	// Define RabbitMQ server config.
-	var aMQPConfig = getConfigAMQP()
+	config := getConfigAMQP()
+	ConfigAMQPDefault = config
 
 	// Create a new RabbitMQ connection.
-	connectRabbitMQ, err := amqp.Dial(aMQPConfig.amqpServerURL)
+	connectRabbitMQ, err := amqp.Dial(config.AMQPUrl)
 	if err != nil {
 		panic(err)
 	}
@@ -39,7 +43,7 @@ func AMQPInit() *amqp.Channel {
 	}
 	ChannelRabbitMQ = channelRabbitMQ
 
-	job.DeclareToQueue(channelRabbitMQ)
+	job.DeclareToQueue(channelRabbitMQ, config.QueueName)
 
 	return channelRabbitMQ
 }
