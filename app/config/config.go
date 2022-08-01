@@ -1,14 +1,14 @@
 package config
 
 import (
-	"github.com/streadway/amqp"
+	"github.com/tuananh3561/go_crm/app/job/rabbit_mq"
 )
 
 type Config struct {
-	App             AppConfig
-	Sentry          SentryConfig
-	ChannelRabbitMQ *amqp.Channel
-	Database        Database
+	App      AppConfig
+	Sentry   SentryConfig
+	Queue    rabbit_mq.QueueRabbitMQ
+	Database Database
 }
 
 func SetupConfig() Config {
@@ -17,13 +17,13 @@ func SetupConfig() Config {
 	LoadEnvironment()
 	SetupLogOutput()
 	sentry := SentryInit()
-	channelRabbitMQ := AMQPInit()
+	queue := SetupQueueInit()
 	database := SetupDatabaseConnection()
 	config := Config{
-		App:             app,
-		Sentry:          sentry,
-		ChannelRabbitMQ: channelRabbitMQ,
-		Database:        database,
+		App:      app,
+		Sentry:   sentry,
+		Queue:    queue,
+		Database: database,
 	}
 	return config
 }

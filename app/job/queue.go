@@ -1,63 +1,28 @@
 package job
 
 import (
-	"github.com/streadway/amqp"
+	"github.com/tuananh3561/go_crm/app/config"
+	"github.com/tuananh3561/go_crm/app/job/rabbit_mq"
 	"log"
 	"reflect"
 )
 
-// Queue type
 type Queue struct {
-	channelRabbitMQ *amqp.Channel
+	cf config.Config
 }
 
-// QueuePublish type
-type QueuePublish struct {
-	channelRabbitMQ *amqp.Channel
-}
-
-var queue *Queue
-
-func DeclareToQueue(channelRabbitMQ *amqp.Channel, queueName string) {
-	q := Queue{
-		channelRabbitMQ: channelRabbitMQ,
+func RunQueue(cf config.Config, queueNames ...string) {
+	queue := Queue{
+		cf: cf,
 	}
-	queue = &q
 
-	// With the instance and declare Queues that we can
-	// publish and subscribe to.
-	_, err := channelRabbitMQ.QueueDeclare(
-		queueName, // queue name
-		true,      // durable
-		false,     // auto delete
-		false,     // exclusive
-		false,     // no wait
-		nil,       // arguments
-	)
-	if err != nil {
-		panic(err)
+	queueName := cf.Queue.Queue.Name
+	if len(queueNames) > 0 {
+		queueName = queueNames[0]
 	}
-}
-
-func SubscribingToQueue(channelRabbitMQ *amqp.Channel, queueName string) {
-	q := Queue{
-		channelRabbitMQ: channelRabbitMQ,
-	}
-	queue = &q
 
 	// Subscribing to Queue for getting messages.
-	messages, err := channelRabbitMQ.Consume(
-		queueName, // queue name
-		"",        // consumer
-		true,      // auto-ack
-		false,     // exclusive
-		false,     // no local
-		false,     // no wait
-		nil,       // arguments
-	)
-	if err != nil {
-		log.Println(err)
-	}
+	messages := rabbit_mq.SubscribingToQueue(cf.Queue.ChannelRabbitMQ, queueName)
 
 	// Make a channel to receive messages into infinite loop.
 	forever := make(chan bool)
@@ -65,15 +30,16 @@ func SubscribingToQueue(channelRabbitMQ *amqp.Channel, queueName string) {
 	go func() {
 		for message := range messages {
 			// For example, show received message in a console.
+			log.Printf(" > Received message: %s\n", message)
 			log.Printf(" > Received message: %s\n", message.Body)
-			Execute(q, "InsertLogMongo")
+			Execute(queue, "InsertLogMongo", message.Body)
 		}
 	}()
 
 	<-forever
 }
 
-func Execute(q Queue, seedMethodName string) {
+func Execute(q Queue, seedMethodName string, body []byte) {
 	// Get the reflection value of the method
 	m := reflect.ValueOf(q).MethodByName(seedMethodName)
 	// Exit if the method doesn't exist
@@ -82,17 +48,4 @@ func Execute(q Queue, seedMethodName string) {
 	}
 	// Execute the method
 	m.Call(nil)
-}
-
-func Publish(message amqp.Publishing) {
-	errQ := queue.channelRabbitMQ.Publish(
-		"",       // exchange
-		"go_crm", // queue name
-		false,    // mandatory
-		false,    // immediate
-		message,  // message to publish
-	)
-	if errQ != nil {
-		log.Fatal("error publishing queue ", errQ)
-	}
 }

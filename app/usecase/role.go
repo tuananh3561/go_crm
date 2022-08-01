@@ -6,6 +6,7 @@ import (
 	"github.com/tuananh3561/go_crm/app/entity"
 	"github.com/tuananh3561/go_crm/app/repository"
 	"github.com/tuananh3561/go_crm/app/service"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 type Role interface {
@@ -49,9 +50,9 @@ func (u user) CreateRole(user entity.User, roleCreateDTO dto.RoleCreateDTO) (*en
 	role, errCreate := u.roleRepo.CreateRole(roleCreate)
 	if errCreate == nil {
 		//condition := bson.M{
-		//	"id": grade.IdGrade,
+		//	"id": roleCreateDTO.Id,
 		//}
-		//history.CreateHistoryActivity(user, entity.ListAction["grade"]["create"], "", condition, eGrade)
+		//u.history.CreateHistoryActivity(user, entity.ListAction["grade"]["create"], "", condition, roleCreate)
 	}
 	return role, errCreate
 }
@@ -71,10 +72,10 @@ func (u user) UpdateRole(user entity.User, roleUpdateDTO dto.RoleUpdateDTO) erro
 	}
 	errUpdate := u.roleRepo.UpdateRole(roleUpdate)
 	if errUpdate == nil {
-		//condition := bson.M{
-		//	"id": eGrade.IdGrade,
-		//}
-		//history.CreateHistoryActivity(user, entity.ListAction["grade"]["update"], "", condition, eGrade)
+		condition := bson.M{
+			"id": roleUpdate.Id,
+		}
+		u.history.CreateHistoryActivity(user, "role@update", "", condition, roleUpdate)
 	}
 	return errUpdate
 }

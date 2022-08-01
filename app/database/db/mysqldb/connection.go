@@ -6,8 +6,6 @@ import (
 	"gorm.io/gorm"
 )
 
-var DB *gorm.DB
-
 type ConfigMysql struct {
 	Host     string
 	Port     string
@@ -25,8 +23,7 @@ func SetupDatabaseConnection(config ConfigMysql) *gorm.DB {
 		return nil
 	}
 	fmt.Println("Connected to Mysql!")
-	DB = db
-	return DB
+	return db
 }
 
 //CloseDatabaseConnection method is closing a connection between your app and your db

@@ -15,23 +15,9 @@ func main() {
 	cf := config.SetupConfig()
 
 	defer config.CloseDatabaseConnection(cf.Database)
-	defer config.CloseAMQP()
+	defer config.CloseQueue(cf.Queue)
 
 	handleArgs(cf)
-
-	handleRun(cf)
-}
-
-func handleRun(cf config.Config) {
-	service := gin.Default()
-	config.SetUseSentry(service)
-
-	routes.Router(service, cf.Database, cf.ChannelRabbitMQ)
-
-	err := service.Run(":" + cf.App.AppPort)
-	if err != nil {
-		panic("Run service failed")
-	}
 }
 
 func handleArgs(cf config.Config) {
@@ -40,14 +26,28 @@ func handleArgs(cf config.Config) {
 	if len(args) >= 1 {
 		switch args[0] {
 		case "migration":
-			migrations.Migrations(cf.Database.MysqlAuth)
+			migrations.Migrations(cf.Database)
 			os.Exit(0)
 		case "seed":
-			seeds.Execute(cf.Database, args[1:]...)
+			seeds.Seeder(cf, args[1:]...)
 			os.Exit(0)
 		case "queue":
-			job.SubscribingToQueue(cf.ChannelRabbitMQ, config.ConfigAMQPDefault.QueueName)
+			job.RunQueue(cf)
 			os.Exit(0)
 		}
+	} else {
+		handleRun(cf)
+	}
+}
+
+func handleRun(cf config.Config) {
+	service := gin.Default()
+	config.SetUseSentry(service)
+
+	routes.Router(service, cf.Database)
+
+	err := service.Run(":" + cf.App.AppPort)
+	if err != nil {
+		panic("Run service failed")
 	}
 }

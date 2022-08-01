@@ -1,11 +1,7 @@
 package helper
 
-import "strings"
-
-const (
-	STATUS_SUCCESS = "success"
-	STATUS_FAILURE = "fail"
-)
+const StatusSuccess = "success"
+const StatusFailure = "fail"
 
 //Response is used for static shape json return
 type Response struct {
@@ -14,9 +10,6 @@ type Response struct {
 	Errors  interface{} `json:"errors"`
 	Data    interface{} `json:"data"`
 }
-
-//EmptyObj value object is used when data doesnt want to be null on json
-type EmptyObj struct{}
 
 //BuildResponse method is to inject data value to dynamic success response
 func BuildResponse(status string, message string, data interface{}) Response {
@@ -31,33 +24,10 @@ func BuildResponse(status string, message string, data interface{}) Response {
 
 // BuildErrorResponse method is to inject data value to dynamic failed response
 func BuildErrorResponse(message string, err string, data interface{}) Response {
-	splitError := strings.Split(err, "\n")
 	res := Response{
-		Status:  STATUS_FAILURE,
-		Message: message,
-		Errors:  splitError,
-		Data:    data,
-	}
-	return res
-}
-
-//BuildErrorMessageResponse method is to inject data value to dynamic failed response
-func BuildErrorMessageResponse(message string, err error, data interface{}) Response {
-	res := Response{
-		Status:  STATUS_FAILURE,
+		Status:  StatusFailure,
 		Message: message,
 		Errors:  err,
-		Data:    data,
-	}
-	return res
-}
-
-// BuildResponseSuccess method is to inject data value to dynamic response success
-func BuildResponseSuccess(message string, data interface{}) Response {
-	res := Response{
-		Status:  STATUS_SUCCESS,
-		Message: message,
-		Errors:  nil,
 		Data:    data,
 	}
 	return res
@@ -66,7 +36,7 @@ func BuildResponseSuccess(message string, data interface{}) Response {
 // BuildSuccessResponse method is to inject data value to dynamic response success
 func BuildSuccessResponse(message string, data interface{}) Response {
 	res := Response{
-		Status:  STATUS_SUCCESS,
+		Status:  StatusSuccess,
 		Message: message,
 		Errors:  nil,
 		Data:    data,

@@ -1,13 +1,13 @@
 package migrations
 
 import (
+	"github.com/tuananh3561/go_crm/app/config"
 	"github.com/tuananh3561/go_crm/app/entity"
-	"gorm.io/gorm"
 	"log"
 )
 
-func Migrations(db *gorm.DB) {
-	err := db.Debug().AutoMigrate(
+func Migrations(database config.Database) {
+	err := database.MysqlAuth.Debug().AutoMigrate(
 		&entity.User{},
 		&entity.UserCountry{},
 		&entity.UserRole{},
@@ -16,7 +16,6 @@ func Migrations(db *gorm.DB) {
 		&entity.Permission{},
 		&entity.PermissionRole{},
 	)
-
 	if err != nil {
 		log.Fatal(err)
 	}
